@@ -1,0 +1,11 @@
+{
+    "name": "com.akrn.akrn_utilities",
+    "version": "1.0.0",
+    "displayName": "AKRN_Utilities",
+    "description": "AKRN_Utilities",
+    "unity": "2021.1",
+    "author": {
+      "name": "Akaranan Weerayanphan",
+      "email": "akaranan.weer@gmail.com"
+    }
+  }
