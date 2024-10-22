@@ -1,6 +1,6 @@
 {
     "name": "com.akrn.akrn_utilities",
-    "version": "1.0.1",
+    "version": "1.0.0",
     "displayName": "AKRN_Utilities",
     "description": "This package simplifies development in Unity by providing various utilities designed to streamline workflows and improve project efficiency.Each tool is crafted to minimize repetitive tasks and enhance coding control over your Unity project.",
     "unity": "2021.1",
