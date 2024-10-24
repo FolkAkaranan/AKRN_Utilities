@@ -8,3 +8,7 @@
 -Singleton
 -UIChildCulling
 -ConditionDrawer
+
+## [1.0.1] - 2024-10-25
+### First Release
+-OnScreenConsole
