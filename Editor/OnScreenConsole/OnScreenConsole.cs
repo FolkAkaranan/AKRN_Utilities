@@ -1,4 +1,3 @@
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
@@ -8,40 +7,63 @@ namespace AKRN_Utilities
     public class OnScreenConsole : MonoBehaviour
     {
         public Text consoleText;
-        public int maxLines = 50;
-
         private Queue<string> logQueue = new Queue<string>();
+        private const int maxLogs = 50;
+        private static OnScreenConsole instance;
 
-        int i = 0;
-
-        private void Update()
+        private void Awake()
         {
-            if (Input.GetKeyDown(KeyCode.Space))
+            if (instance == null)
             {
-                Debug.Log(i);
-                i++;
+                instance = this;
+                DontDestroyOnLoad(gameObject);
+            }
+            else
+            {
+                Destroy(gameObject);
+                return;
             }
         }
 
-        void OnEnable()
+        private void OnEnable()
         {
             Application.logMessageReceived += HandleLog;
         }
 
-        void OnDisable()
+        private void OnDisable()
         {
             Application.logMessageReceived -= HandleLog;
         }
 
-        void HandleLog(string logString, string stackTrace, LogType type)
+        private void HandleLog(string logString, string stackTrace, LogType type)
         {
-            string newLog = $"{type}: {logString}";
-            logQueue.Enqueue(newLog);
-            if (logQueue.Count > maxLines)
+            string newLog = type == LogType.Error || type == LogType.Exception
+                ? $"{type}: {logString}\n{stackTrace}"
+                : $"{type}: {logString}";
+
+            if (logQueue.Count >= maxLogs)
             {
                 logQueue.Dequeue();
             }
-            consoleText.text = string.Join("\n", logQueue.ToArray());
+
+            logQueue.Enqueue(newLog);
+
+            if (consoleText != null)
+            {
+                consoleText.text = string.Join("\n", logQueue.ToArray());
+            }
+        }
+
+        public void CopyConsoleToClipboard()
+        {
+            if (consoleText == null || logQueue.Count == 0)
+            {
+                Debug.LogWarning("No logs available to copy.");
+                return;
+            }
+
+            GUIUtility.systemCopyBuffer = string.Join("\n", logQueue.ToArray());
+            Debug.Log("Console text copied to clipboard.");
         }
     }
 }

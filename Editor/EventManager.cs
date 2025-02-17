@@ -8,8 +8,16 @@ namespace AKRN_Utilities
     {
         private Dictionary<string, Delegate> eventDictionary = new Dictionary<string, Delegate>();
 
+        private static bool IsInstanceAvailable()
+        {
+            return Instance != null;
+        }
+
+        // Start Listening for Event
         public static void StartListening(string eventName, Action listener)
         {
+            if (!IsInstanceAvailable()) return;
+
             if (Instance.eventDictionary.TryGetValue(eventName, out Delegate thisEvent))
             {
                 thisEvent = Delegate.Combine(thisEvent, listener);
@@ -23,6 +31,8 @@ namespace AKRN_Utilities
 
         public static void StartListening<T>(string eventName, Action<T> listener)
         {
+            if (!IsInstanceAvailable()) return;
+
             if (Instance.eventDictionary.TryGetValue(eventName, out Delegate thisEvent))
             {
                 thisEvent = Delegate.Combine(thisEvent, listener);
@@ -34,9 +44,10 @@ namespace AKRN_Utilities
             }
         }
 
+        // Stop Listening for Event
         public static void StopListening(string eventName, Action listener)
         {
-            if (Instance == null) return;
+            if (!IsInstanceAvailable()) return;
 
             if (Instance.eventDictionary.TryGetValue(eventName, out Delegate thisEvent))
             {
@@ -54,7 +65,7 @@ namespace AKRN_Utilities
 
         public static void StopListening<T>(string eventName, Action<T> listener)
         {
-            if (Instance == null) return;
+            if (!IsInstanceAvailable()) return;
 
             if (Instance.eventDictionary.TryGetValue(eventName, out Delegate thisEvent))
             {
@@ -70,16 +81,22 @@ namespace AKRN_Utilities
             }
         }
 
+        // Trigger Event without parameter
         public static void TriggerEvent(string eventName)
         {
+            if (!IsInstanceAvailable()) return;
+
             if (Instance.eventDictionary.TryGetValue(eventName, out Delegate thisEvent))
             {
                 thisEvent?.DynamicInvoke();
             }
         }
 
+        // Trigger Event with a parameter
         public static void TriggerEvent<T>(string eventName, T arg)
         {
+            if (!IsInstanceAvailable()) return;
+
             if (Instance.eventDictionary.TryGetValue(eventName, out Delegate thisEvent))
             {
                 thisEvent?.DynamicInvoke(arg);

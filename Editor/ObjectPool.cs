@@ -1,17 +1,17 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-
 namespace AKRN_Utilities
 {
-    public class ObjectPool
+    public class ObjectPool<T>
     {
-        private readonly Queue<GameObject> pool = new Queue<GameObject>();
-        private readonly GameObject prefab;
+        private readonly Queue<T> pool = new();
+        private readonly Func<T> createFunc;
 
-        public ObjectPool(GameObject prefab, int initialSize)
+        public ObjectPool(Func<T> createFunc, int initialSize)
         {
-            this.prefab = prefab;
+            this.createFunc = createFunc ?? throw new ArgumentNullException(nameof(createFunc));
             LoadInitialObjects(initialSize);
         }
 
@@ -19,92 +19,43 @@ namespace AKRN_Utilities
         {
             for (int i = 0; i < initialSize; i++)
             {
-                GameObject obj = LoadPrefab();
-                if (obj != null)
-                {
-                    obj.SetActive(false);
-                    pool.Enqueue(obj);
-                }
+                pool.Enqueue(createFunc());
             }
         }
 
-        private GameObject LoadPrefab()
+        public T Get()
         {
-            return GameObject.Instantiate(prefab);
+            return pool.Count > 0 ? pool.Dequeue() : createFunc();
         }
 
-        public GameObject Get()
+        public void ReturnToPool(T obj)
         {
-            if (pool.Count == 0)
-            {
-                return LoadPrefab();
-            }
-
-            GameObject pooledObj = pool.Dequeue();
-            pooledObj.SetActive(true);
-            return pooledObj;
-        }
-
-        public void ReturnToPool(GameObject obj)
-        {
-            obj.SetActive(false);
             pool.Enqueue(obj);
         }
     }
-}
 
-
-public class ObjectPoolFromResorce
-{
-    private readonly Queue<GameObject> pool = new Queue<GameObject>();
-    private readonly string resourcePath;
-
-    public ObjectPoolFromResorce(string resourcePath, int initialSize)
+    public class GameObjectPool : ObjectPool<GameObject>
     {
-        this.resourcePath = resourcePath;
-        LoadInitialObjects(initialSize);
+        public GameObjectPool(GameObject prefab, int initialSize)
+            : base(() => GameObject.Instantiate(prefab), initialSize)
+        {
+        }
     }
 
-    private void LoadInitialObjects(int initialSize)
+    public class GameObjectPoolFromResource : ObjectPool<GameObject>
     {
-        for (int i = 0; i < initialSize; i++)
-        {
-            GameObject obj = LoadPrefab();
-            if (obj != null)
+        public GameObjectPoolFromResource(string resourcePath, int initialSize)
+            : base(() =>
             {
-                obj.SetActive(false);
-                pool.Enqueue(obj);
-            }
-        }
-    }
-
-    private GameObject LoadPrefab()
-    {
-        GameObject prefab = Resources.Load<GameObject>(resourcePath);
-        if (prefab == null)
+                GameObject prefab = Resources.Load<GameObject>(resourcePath);
+                if (prefab == null)
+                {
+                    Debug.LogError($"Prefab not found at path: {resourcePath}");
+                    return null;
+                }
+                return GameObject.Instantiate(prefab);
+            }, initialSize)
         {
-            Debug.LogError($"Prefab not found at path: {resourcePath}");
-            return null;
         }
-        return GameObject.Instantiate(prefab);
-    }
-
-    public GameObject Get()
-    {
-        if (pool.Count == 0)
-        {
-            return LoadPrefab();
-        }
-
-        GameObject pooledObj = pool.Dequeue();
-        pooledObj.SetActive(true);
-        return pooledObj;
-    }
-
-    public void ReturnToPool(GameObject obj)
-    {
-        obj.SetActive(false);
-        pool.Enqueue(obj);
     }
 }
-
